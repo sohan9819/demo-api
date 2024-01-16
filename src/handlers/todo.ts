@@ -69,14 +69,13 @@ export const updateById = async (
   const todoId = req.params.id;
   const updatedTodo = req.body;
 
-  const todo = await db.todo.update({
+  const existingTodo = await db.todo.findUnique({
     where: {
       id: todoId,
     },
-    data: updatedTodo,
   });
 
-  if (!todo) {
+  if (!existingTodo) {
     next(
       new BadRequestsException(
         `🔍 - Not Found - Todo with id ${todoId}`,
@@ -85,23 +84,29 @@ export const updateById = async (
     );
   }
 
-  res.status(200).json(todo);
+  const updatedTodoResult = await db.todo.update({
+    where: {
+      id: todoId,
+    },
+    data: updatedTodo,
+  });
+
+  res.status(200).json(updatedTodoResult);
 };
 
 export const deleteById = async (
-  req: Request<ParamsWithId, {}, {}>,
-  res: Response<{}>,
+  req: Request<ParamsWithId, Todo, {}>,
+  res: Response<Todo>,
   next: NextFunction,
 ) => {
   const todoId = req.params.id;
-
-  const deletedTodo = await db.todo.delete({
+  const existingTodo = await db.todo.findUnique({
     where: {
       id: todoId,
     },
   });
 
-  if (!deletedTodo) {
+  if (!existingTodo) {
     next(
       new BadRequestsException(
         `🔍 - Not Found - Todo with id ${todoId} doesn't exist or already deleted`,
@@ -110,5 +115,11 @@ export const deleteById = async (
     );
   }
 
-  res.status(200).json(deletedTodo);
+  const deletedTodoResult = await db.todo.delete({
+    where: {
+      id: todoId,
+    },
+  });
+
+  res.status(200).json(deletedTodoResult);
 };
